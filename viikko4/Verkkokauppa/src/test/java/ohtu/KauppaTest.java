@@ -45,10 +45,6 @@ public class KauppaTest {
 
     }
     
-    @After
-    public void tearDown() {
-    }
-
     @Test
     public void ostoksenPaaytyttyaPankinMetodiaTilisiirtoKutsutaan() {
         Kauppa k = new Kauppa(varasto, pankki, viite);              
@@ -109,5 +105,59 @@ public class KauppaTest {
         k.tilimaksu("pekka", "12345");
 
         verify(pankki).tilisiirto(eq("pekka"), eq(42), eq("12345"), anyString(), eq(5));   
+    }
+    
+    @Test
+    public void aloitaAsiointiNollaaOstoskorin() {
+
+        Kauppa k = new Kauppa(varasto, pankki, viite);
+
+        k.aloitaAsiointi();
+        k.lisaaKoriin(1);
+        k.tilimaksu("pekka", "12345");
+
+        k.aloitaAsiointi();
+        k.lisaaKoriin(2);
+        k.tilimaksu("pekka", "11111");
+
+        verify(pankki).tilisiirto(eq("pekka"), anyInt(), eq("11111"), anyString(), eq(6));
+
+    }
+    
+    @Test
+    public void pyydetaanUusiViiteUudelleAsioinnille() {
+
+        viite = mock(Viitegeneraattori.class);
+        
+        Kauppa k = new Kauppa(varasto, pankki, viite);
+
+        k.aloitaAsiointi();
+        k.lisaaKoriin(1);
+        k.tilimaksu("pekka", "12345");
+        
+        verify(pankki).tilisiirto(eq("pekka"), anyInt(), eq("12345"), anyString(), eq(5));
+        verify(viite, times(1)).uusi();
+        
+        k.aloitaAsiointi();
+        k.lisaaKoriin(2);
+        k.tilimaksu("pekka", "11111");
+
+        verify(pankki).tilisiirto(eq("pekka"), anyInt(), eq("11111"), anyString(), eq(6));
+        verify(viite, times(2)).uusi();
+    }
+    
+    @Test
+    public void poistaKoristaLaskeeHintaaOikein() {
+        Kauppa k = new Kauppa(varasto, pankki, viite);
+        
+        k.aloitaAsiointi();
+        k.lisaaKoriin(1);
+        k.lisaaKoriin(2);
+        
+        k.poistaKorista(1);
+        
+        k.tilimaksu("pekka", "12345");
+        
+        verify(pankki).tilisiirto(eq("pekka"), anyInt(), eq("12345"), anyString(), eq(6));
     }
 }
