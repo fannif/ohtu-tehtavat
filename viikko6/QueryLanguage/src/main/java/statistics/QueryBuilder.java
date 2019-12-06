@@ -8,6 +8,7 @@ import statistics.matcher.Not;
 import statistics.matcher.HasAtLeast;
 import statistics.matcher.HasFewerThan;
 import statistics.matcher.Matcher;
+import statistics.matcher.Or;
 import statistics.matcher.PlaysIn;
 
 public class QueryBuilder {
@@ -19,7 +20,13 @@ public class QueryBuilder {
     }
     
     public Matcher build() {
-        return matcher;
+        return startOver();
+    }
+    
+    public Matcher startOver() {
+        Matcher oldMatcher = matcher;
+        matcher = new All();
+        return oldMatcher;
     }
     
     public QueryBuilder playsIn(String team) {
@@ -39,6 +46,11 @@ public class QueryBuilder {
     
     public QueryBuilder not(Matcher m) {
         this.matcher = new And(matcher, new Not(m));
+        return this;
+    }
+    
+    public QueryBuilder oneOf(Matcher ... matchers) {
+        this.matcher = new And(matcher, new Or(matchers));
         return this;
     }
     
