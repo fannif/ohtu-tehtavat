@@ -16,7 +16,7 @@ public class Main {
                              new PlaysIn("PHI")
         );
 
-        
+
         for (Player player : stats.matches(m)) {
             System.out.println(player);
         }
